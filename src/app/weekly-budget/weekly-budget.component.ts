@@ -1,11 +1,10 @@
 import {Component, OnInit} from '@angular/core';
-import {CurrencyPipe, DatePipe} from '@angular/common';
+import {CurrencyPipe, DatePipe, NgClass} from '@angular/common';
 import {MatTableModule} from '@angular/material/table';
 import {MatFormField, MatLabel} from '@angular/material/form-field';
 import {FormsModule} from '@angular/forms';
-import {MatIcon} from '@angular/material/icon';
-import {MatIconButton} from '@angular/material/button';
 import {MatInput} from '@angular/material/input';
+import {CookieService} from 'ngx-cookie-service';
 
 @Component({
   selector: 'app-simple',
@@ -15,10 +14,9 @@ import {MatInput} from '@angular/material/input';
     MatTableModule,
     MatFormField,
     FormsModule,
-    MatIcon,
-    MatIconButton,
     MatInput,
-    MatLabel
+    MatLabel,
+    NgClass
   ],
   templateUrl: './weekly-budget.component.html',
   styleUrl: './weekly-budget.component.css'
@@ -27,37 +25,60 @@ export class WeeklyBudgetComponent implements OnInit {
 
   displayedColumns: string[] = ['startDate', 'spent', 'remaining', 'total'];
 
+  BUDGET_COOKIE_NAME = 'initial_budget';
+
+  SPENT_COOKIE_NAME = 'initial_spent';
+
+  DEFAULT_BUDGET = 200;
+
+  DEFAULT_SPENT = 100;
+
+  budget: number = this.DEFAULT_BUDGET;
+
+  spent: number = this.DEFAULT_SPENT;
+
   year = 2025;
 
   month = 0; // January (0-based index)
 
-  budget: number = 200;
-
-  spent: number = 115.72;
+  currentDate = new Date();
 
   weeks: Week[] = [];
 
+  constructor(private cookieService: CookieService) {
+  }
+
   ngOnInit(): void {
-    this.onBudgetChange();
-  }
+    // restore the initial values from the cookies (if they exist)
+    const budgetString = this.cookieService.get(this.BUDGET_COOKIE_NAME);
+    const spentString = this.cookieService.get(this.SPENT_COOKIE_NAME);
+    this.budget = budgetString ? parseInt(budgetString, 10) : this.DEFAULT_BUDGET;
+    this.spent = spentString ? parseInt(spentString, 10) : this.DEFAULT_SPENT;
 
-  formatCurrency(amount: number): string {
-    return amount.toLocaleString('en-US', {style: 'currency', currency: 'USD'});
-  }
+    // get the current year and month
+    this.year = this.currentDate.getFullYear();
+    this.month = this.currentDate.getMonth();
 
-  spentPercentage(): number {
-    return this.spent / this.budget * 100;
+    this.weeks = this.getWeeksForMonth();
   }
 
   onBudgetChange() {
-    // console.log("change budget: " + this.budget);
-    this.weeks = this.getWeeksForMonth(this.year, this.month, this.budget * 100);
-    console.log(this.weeks);
+    // console.log("budget change: " + this.budget);
+    this.weeks = this.getWeeksForMonth();
+    // console.log(this.weeks);
+
+    // save to cookies
+    this.cookieService.set(this.BUDGET_COOKIE_NAME, this.budget.toString(10));
+    this.cookieService.set(this.SPENT_COOKIE_NAME, this.spent.toString(10));
   }
 
-  getWeeksForMonth(year: number, month: number, totalAmountInCents: number): Week[] {
+  getWeeksForMonth(): Week[] {
+    const currentYear = this.currentDate.getFullYear();
+    const currentMonth = this.currentDate.getMonth();
+    const totalAmountInCents = this.budget * 100;
+
     const weeks: Week[] = [];
-    const startOfMonth = new Date(year, month, 1);
+    const startOfMonth = new Date(currentYear, currentMonth, 1);
     let endOfMonth = new Date(startOfMonth);
     endOfMonth.setMonth(endOfMonth.getMonth() + 1); // move one month forward, e.g. Feb 1st
     endOfMonth.setDate(endOfMonth.getDate() - 1); // move one day backward, e.g. Jan 31st
@@ -105,6 +126,9 @@ export class WeeklyBudgetComponent implements OnInit {
     return weeks;
   }
 
+  isRowHighlighted(row: Week): boolean {
+    return row ? row.isCurrentWeek() : false;
+  }
 }
 
 class Week {
@@ -130,6 +154,11 @@ class Week {
     this.remainingAmountCents = this.budgetAmountCents - this.spentAmountCents;
 
     return remainingCents - this.spentAmountCents;
+  }
+
+  isCurrentWeek(): boolean {
+    const currentDate = new Date();
+    return currentDate >= this.startDate && currentDate < this.endDate;
   }
 
 }
