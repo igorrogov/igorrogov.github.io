@@ -4,6 +4,12 @@
   /*align-items: flex-start;*/
 }
 
+div.header {
+	padding: 20px;
+	display: flex;
+	gap: 10px;
+}
+
 .mat-column-poster {
 	width: 128px;
 	padding: 10px;

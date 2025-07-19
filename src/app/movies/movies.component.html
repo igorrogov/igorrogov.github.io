@@ -7,10 +7,27 @@
 </head>
 <body>
 
-<div style="padding: 20px;">
+<div class="header">
 	<input type="password" [(ngModel)]="apiKey" placeholder="Enter API Key"/>
 	<button (click)="saveApiKey()">Save API Key</button>
 </div>
+
+<mat-form-field>
+	<mat-label>Enter a date range</mat-label>
+	<mat-date-range-input [formGroup]="range" [rangePicker]="picker">
+		<input matStartDate formControlName="start" placeholder="Start date">
+		<input matEndDate formControlName="end" placeholder="End date">
+	</mat-date-range-input>
+	<mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+	<mat-date-range-picker #picker></mat-date-range-picker>
+
+	@if (range.controls.start.hasError('matStartDateInvalid')) {
+		<mat-error>Invalid start date</mat-error>
+	}
+	@if (range.controls.end.hasError('matEndDateInvalid')) {
+		<mat-error>Invalid end date</mat-error>
+	}
+</mat-form-field>
 
 <div class="mat-elevation-z8 table-container">
 	<table mat-table [dataSource]="movies" class="mat-table">
@@ -32,7 +49,7 @@
 		<!-- Title Column -->
 		<ng-container matColumnDef="title">
 			<th mat-header-cell *matHeaderCellDef> Title</th>
-			<td mat-cell *matCellDef="let movie" > {{ movie.title }}</td>
+			<td mat-cell *matCellDef="let movie" > <a href="https://www.themoviedb.org/movie/{{movie.id}}"> {{ movie.title }} </a></td>
 			<td mat-footer-cell *matFooterCellDef></td>
 		</ng-container>
 

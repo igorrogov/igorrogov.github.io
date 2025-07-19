@@ -1,6 +1,9 @@
 import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
+import {DatePipe} from '@angular/common';
+
+const datepipe: DatePipe = new DatePipe('en-US');
 
 @Injectable({
 	providedIn: 'root'
@@ -12,13 +15,17 @@ export class MovieService {
 	constructor(private http: HttpClient) {
 	}
 
-	discoverMovies(apiKey: string): Observable<DiscoverMoviesResponse> {
+	discoverMovies(apiKey: string, start: Date, end: Date): Observable<DiscoverMoviesResponse> {
 		const headers = new HttpHeaders({
 			Authorization: `Bearer ${apiKey}`
 		});
+
+		const formattedStart = datepipe.transform(start, 'YYYY-MM-dd');
+		const formattedEnd = datepipe.transform(end, 'YYYY-MM-dd');
+
 		const params = new HttpParams()
-			.set('release_date.gte', '2025-06-01')
-			.set('release_date.lte', '2025-06-25')
+			.set('release_date.gte', formattedStart as string)
+			.set('release_date.lte', formattedEnd as string)
 			.set('sort_by', 'primary_release_date.desc')
 			.set('vote_count.gte', 50)
 			.set('with_release_type', '4|5')
