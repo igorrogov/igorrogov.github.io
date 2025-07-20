@@ -23,7 +23,7 @@ export class MovieService {
 		return this.http.get<GenreListResponse>(`${this.baseUrl}/genre/movie/list`, { headers });
 	}
 
-	discoverMovies(apiKey: string, start: Date, end: Date): Observable<DiscoverMoviesResponse> {
+	discoverMovies(apiKey: string, start: Date, end: Date, page: number): Observable<DiscoverMoviesResponse> {
 		const headers = new HttpHeaders({
 			Authorization: `Bearer ${apiKey}`
 		});
@@ -42,7 +42,7 @@ export class MovieService {
 			.set('with_release_type', '4|5')
 			.set('with_original_language', 'en')
 			.set('without_genres', "99,16")
-			.set('page', 1)
+			.set('page', (page+1))
 		return this.http.get<DiscoverMoviesResponse>(`${this.baseUrl}/discover/movie`, { headers, params });
 	}
 

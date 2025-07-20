@@ -65,6 +65,16 @@
 		<tr mat-footer-row *matFooterRowDef="displayedColumns"></tr>
 
 	</table>
+
+	<mat-paginator [pageSizeOptions]="[5, 10, 20]"
+				   showFirstLastButtons hidePageSize
+				   aria-label="Select page"
+				   [length]="totalMovies"
+				   [pageIndex]="currentPage"
+				   [pageSize]="pageSize"
+				   (page)="onPageEvent($event)"
+	>
+	</mat-paginator>
 </div>
 
 </body>

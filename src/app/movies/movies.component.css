@@ -18,5 +18,7 @@ div.header {
 }
 
 .mat-column-description {
+	padding: 10px;
 	vertical-align: top;
 }
+

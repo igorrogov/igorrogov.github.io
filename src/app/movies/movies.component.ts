@@ -9,6 +9,7 @@ import {provideNativeDateAdapter} from '@angular/material/core';
 import {MatIconModule} from '@angular/material/icon';
 import {MatInputModule} from '@angular/material/input';
 import {Subscription} from 'rxjs';
+import {MatPaginator, MatPaginatorModule, PageEvent} from '@angular/material/paginator';
 
 @Component({
 	selector: 'movies',
@@ -30,7 +31,9 @@ import {Subscription} from 'rxjs';
 		MatFormFieldModule,
 		MatInputModule,
 		MatDatepickerModule,
-		MatIconModule
+		MatIconModule,
+		MatPaginator,
+		MatPaginatorModule
 	],
 	providers: [provideNativeDateAdapter()],
 	templateUrl: './movies.component.html',
@@ -57,15 +60,26 @@ export class MoviesComponent implements OnInit, OnDestroy  {
 
 	movies: Movie[] = [];
 
+	totalMovies: number = 1;
+
+	currentPage: number = 0;
+
+	pageSize: number = 20;
+
+	currentStartDate: Date = this.DEFAULT_START_DATE;
+
+	currentEndDate: Date = this.DEFAULT_END_DATE;
+
 	constructor(private movieService: MovieService) {
 		// show the last two weeks by default
 		this.DEFAULT_START_DATE.setDate(this.DEFAULT_END_DATE.getDate() - 14);
 
 		this.range.setValue({ start: new Date(), end: new Date() });
 		this.rangeSubscription = this.range.valueChanges.subscribe(dateRange => {
-			const start = dateRange.start ?? this.DEFAULT_START_DATE;
-			const end = dateRange.end ?? this.DEFAULT_END_DATE;
-			this.loadMovies(this.apiKey, start, end);
+			this.currentStartDate = dateRange.start ?? this.DEFAULT_START_DATE;
+			this.currentEndDate = dateRange.end ?? this.DEFAULT_END_DATE;
+			this.currentPage = 0; // reset page number
+			this.reloadMovies();
 		});
 	}
 
@@ -74,7 +88,7 @@ export class MoviesComponent implements OnInit, OnDestroy  {
 		if (loadedKey) {
 			this.apiKey = loadedKey;
 			this.loadGenres(this.apiKey);
-			this.loadMovies(this.apiKey, this.DEFAULT_START_DATE, this.DEFAULT_END_DATE);
+			this.reloadMovies();
 		}
 	}
 
@@ -86,12 +100,14 @@ export class MoviesComponent implements OnInit, OnDestroy  {
 
 	saveApiKey() {
 		localStorage.setItem('apiKey', this.apiKey);
-		this.loadMovies(this.apiKey, this.DEFAULT_START_DATE, this.DEFAULT_END_DATE);
+		this.reloadMovies();
 	}
 
-	loadMovies(apiKey: string, start: Date, end: Date) {
-		this.movieService.discoverMovies(apiKey, start, end).subscribe(response => {
+	reloadMovies() {
+		this.movieService.discoverMovies(this.apiKey, this.currentStartDate, this.currentEndDate, this.currentPage).subscribe(response => {
 			this.movies = response.results;
+			this.pageSize = response.results.length;
+			this.totalMovies = response.total_results;
 		});
 	}
 
@@ -109,6 +125,11 @@ export class MoviesComponent implements OnInit, OnDestroy  {
 
 	truncate(text: string, length: number): string {
 		return text.length > length ? text.slice(0, length) + "..." : text;
+	}
+
+	onPageEvent(event: PageEvent) {
+		this.currentPage = event.pageIndex;
+		this.reloadMovies();
 	}
 
 }
