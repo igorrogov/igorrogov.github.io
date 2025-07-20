@@ -14,5 +14,9 @@ div.header {
 	width: 128px;
 	padding: 10px;
 	text-align: center;
+	vertical-align: top;
 }
 
+.mat-column-description {
+	vertical-align: top;
+}

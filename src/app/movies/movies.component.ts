@@ -107,6 +107,10 @@ export class MoviesComponent implements OnInit, OnDestroy  {
 		return genreIDs.map(id => this.genreMap.get(id)).join(", ");
 	}
 
+	truncate(text: string, length: number): string {
+		return text.length > length ? text.slice(0, length) + "..." : text;
+	}
+
 }
 
 
