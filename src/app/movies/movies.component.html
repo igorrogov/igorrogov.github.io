@@ -46,17 +46,16 @@
 			<td mat-footer-cell *matFooterCellDef></td>
 		</ng-container>
 
-		<!-- Title Column -->
-		<ng-container matColumnDef="title">
-			<th mat-header-cell *matHeaderCellDef> Title</th>
-			<td mat-cell *matCellDef="let movie" > <a href="https://www.themoviedb.org/movie/{{movie.id}}"> {{ movie.title }} </a></td>
-			<td mat-footer-cell *matFooterCellDef></td>
-		</ng-container>
-
-		<!-- Release Date Column -->
-		<ng-container matColumnDef="releaseDate">
-			<th mat-header-cell *matHeaderCellDef> Release Date</th>
-			<td mat-cell *matCellDef="let movie"> {{ movie.release_date }}</td>
+		<!-- Description Column -->
+		<ng-container matColumnDef="description">
+			<th mat-header-cell *matHeaderCellDef>Description</th>
+			<td mat-cell *matCellDef="let movie" >
+				<p>
+					<a href="https://www.themoviedb.org/movie/{{movie.id}}"> {{ movie.title }} </a>
+				</p>
+				<p>{{movie.release_date}} | {{this.getGenres(movie.genre_ids)}}</p>
+				<p>{{movie.overview}}</p>
+			</td>
 			<td mat-footer-cell *matFooterCellDef></td>
 		</ng-container>
 

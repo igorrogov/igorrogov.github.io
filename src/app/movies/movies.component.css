@@ -13,8 +13,6 @@ div.header {
 .mat-column-poster {
 	width: 128px;
 	padding: 10px;
+	text-align: center;
 }
 
-.mat-column-title {
-	width: 400px;
-}

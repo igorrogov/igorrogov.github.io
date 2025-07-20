@@ -42,6 +42,8 @@ export class MoviesComponent implements OnInit, OnDestroy  {
 
 	readonly DEFAULT_END_DATE = new Date();
 
+	readonly genreMap = new Map<number, string>();
+
 	apiKey: string = '';
 
 	readonly range = new FormGroup({
@@ -51,7 +53,7 @@ export class MoviesComponent implements OnInit, OnDestroy  {
 
 	private readonly rangeSubscription: Subscription | undefined;
 
-	displayedColumns: string[] = ['poster', 'title', 'releaseDate'];
+	displayedColumns: string[] = ['poster', 'description'];
 
 	movies: Movie[] = [];
 
@@ -71,6 +73,7 @@ export class MoviesComponent implements OnInit, OnDestroy  {
 		const loadedKey = localStorage.getItem('apiKey');
 		if (loadedKey) {
 			this.apiKey = loadedKey;
+			this.loadGenres(this.apiKey);
 			this.loadMovies(this.apiKey, this.DEFAULT_START_DATE, this.DEFAULT_END_DATE);
 		}
 	}
@@ -90,6 +93,18 @@ export class MoviesComponent implements OnInit, OnDestroy  {
 		this.movieService.discoverMovies(apiKey, start, end).subscribe(response => {
 			this.movies = response.results;
 		});
+	}
+
+	loadGenres(apiKey: string) {
+		this.movieService.getAllGenres(apiKey).subscribe(response => {
+			response.genres.forEach(genre => {
+				this.genreMap.set(genre.id, genre.name);
+			});
+		});
+	}
+
+	getGenres(genreIDs: number[]): string {
+		return genreIDs.map(id => this.genreMap.get(id)).join(", ");
 	}
 
 }
