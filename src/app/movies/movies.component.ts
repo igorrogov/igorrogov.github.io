@@ -2,7 +2,7 @@ import {AfterViewInit, Component, OnDestroy, OnInit, ViewChild} from '@angular/c
 import {MatTableDataSource, MatTableModule} from '@angular/material/table';
 import {FormControl, FormGroup, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {Movie, MovieService} from './movies.service';
-import {NgIf} from '@angular/common';
+import {DatePipe, NgIf} from '@angular/common';
 import {MatError, MatFormField, MatFormFieldModule, MatLabel} from '@angular/material/form-field';
 import {MatDatepickerModule, MatDatepickerToggle, MatDateRangeInput, MatDateRangePicker} from '@angular/material/datepicker';
 import {provideNativeDateAdapter} from '@angular/material/core';
@@ -33,7 +33,8 @@ import {MatPaginator, MatPaginatorModule} from '@angular/material/paginator';
 		MatDatepickerModule,
 		MatIconModule,
 		MatPaginator,
-		MatPaginatorModule
+		MatPaginatorModule,
+		DatePipe
 	],
 	providers: [provideNativeDateAdapter()],
 	templateUrl: './movies.component.html',
@@ -105,6 +106,8 @@ export class MoviesComponent implements OnInit, AfterViewInit, OnDestroy  {
 
 	reloadMovies() {
 		this.movieService.discoverMovies(this.apiKey, this.currentStartDate, this.currentEndDate).subscribe(movies => {
+			// sort by release date (newest to oldest)
+			movies.sort((a, b) => b.first_digital_release_date.getTime() - a.first_digital_release_date.getTime());
 			this.dataSource.data = movies;
 		});
 	}
