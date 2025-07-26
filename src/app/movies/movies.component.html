@@ -30,7 +30,7 @@
 </mat-form-field>
 
 <div class="mat-elevation-z8 table-container">
-	<table mat-table [dataSource]="movies" class="mat-table">
+	<table mat-table [dataSource]="dataSource" class="mat-table">
 
 		<!-- Poster Column -->
 		<ng-container matColumnDef="poster">
@@ -66,13 +66,9 @@
 
 	</table>
 
-	<mat-paginator [pageSizeOptions]="[5, 10, 20]"
-				   showFirstLastButtons hidePageSize
+	<mat-paginator #paginator [pageSizeOptions]="[5, 10, 20]"
+				   showFirstLastButtons pageSize="20"
 				   aria-label="Select page"
-				   [length]="totalMovies"
-				   [pageIndex]="currentPage"
-				   [pageSize]="pageSize"
-				   (page)="onPageEvent($event)"
 	>
 	</mat-paginator>
 </div>

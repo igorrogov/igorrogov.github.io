@@ -1,5 +1,5 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import {MatTableModule} from '@angular/material/table';
+import {AfterViewInit, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {MatTableDataSource, MatTableModule} from '@angular/material/table';
 import {FormControl, FormGroup, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {Movie, MovieService} from './movies.service';
 import {NgIf} from '@angular/common';
@@ -9,7 +9,7 @@ import {provideNativeDateAdapter} from '@angular/material/core';
 import {MatIconModule} from '@angular/material/icon';
 import {MatInputModule} from '@angular/material/input';
 import {Subscription} from 'rxjs';
-import {MatPaginator, MatPaginatorModule, PageEvent} from '@angular/material/paginator';
+import {MatPaginator, MatPaginatorModule} from '@angular/material/paginator';
 
 @Component({
 	selector: 'movies',
@@ -39,7 +39,7 @@ import {MatPaginator, MatPaginatorModule, PageEvent} from '@angular/material/pag
 	templateUrl: './movies.component.html',
 	styleUrl: './movies.component.css'
 })
-export class MoviesComponent implements OnInit, OnDestroy  {
+export class MoviesComponent implements OnInit, AfterViewInit, OnDestroy  {
 
 	readonly DEFAULT_START_DATE = new Date();
 
@@ -58,13 +58,10 @@ export class MoviesComponent implements OnInit, OnDestroy  {
 
 	displayedColumns: string[] = ['poster', 'description'];
 
-	movies: Movie[] = [];
+	dataSource = new MatTableDataSource<Movie>();
 
-	totalMovies: number = 1;
-
-	currentPage: number = 0;
-
-	pageSize: number = 20;
+	@ViewChild(MatPaginator, { static: true })
+	paginator: MatPaginator = new MatPaginator();
 
 	currentStartDate: Date = this.DEFAULT_START_DATE;
 
@@ -78,7 +75,6 @@ export class MoviesComponent implements OnInit, OnDestroy  {
 		this.rangeSubscription = this.range.valueChanges.subscribe(dateRange => {
 			this.currentStartDate = dateRange.start ?? this.DEFAULT_START_DATE;
 			this.currentEndDate = dateRange.end ?? this.DEFAULT_END_DATE;
-			this.currentPage = 0; // reset page number
 			this.reloadMovies();
 		});
 	}
@@ -90,6 +86,10 @@ export class MoviesComponent implements OnInit, OnDestroy  {
 			this.loadGenres(this.apiKey);
 			this.reloadMovies();
 		}
+	}
+
+	ngAfterViewInit() {
+		this.dataSource.paginator = this.paginator;
 	}
 
 	ngOnDestroy(): void {
@@ -104,10 +104,8 @@ export class MoviesComponent implements OnInit, OnDestroy  {
 	}
 
 	reloadMovies() {
-		this.movieService.discoverMovies(this.apiKey, this.currentStartDate, this.currentEndDate, this.currentPage).subscribe(response => {
-			this.movies = response.results;
-			this.pageSize = response.results.length;
-			this.totalMovies = response.total_results;
+		this.movieService.discoverMovies(this.apiKey, this.currentStartDate, this.currentEndDate).subscribe(movies => {
+			this.dataSource.data = movies;
 		});
 	}
 
@@ -125,11 +123,6 @@ export class MoviesComponent implements OnInit, OnDestroy  {
 
 	truncate(text: string, length: number): string {
 		return text.length > length ? text.slice(0, length) + "..." : text;
-	}
-
-	onPageEvent(event: PageEvent) {
-		this.currentPage = event.pageIndex;
-		this.reloadMovies();
 	}
 
 }
