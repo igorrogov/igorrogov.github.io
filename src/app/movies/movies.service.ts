@@ -1,6 +1,6 @@
 import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
 import {Injectable} from '@angular/core';
-import {forkJoin, map, Observable, of, switchMap} from 'rxjs';
+import {BehaviorSubject, finalize, forkJoin, from, map, mergeMap, Observable, of, switchMap, tap, toArray} from 'rxjs';
 import {DatePipe} from '@angular/common';
 
 const datepipe: DatePipe = new DatePipe('en-US');
@@ -11,6 +11,8 @@ const datepipe: DatePipe = new DatePipe('en-US');
 export class MovieService {
 
 	private readonly baseUrl = 'https://api.themoviedb.org/3';
+
+	public progress$ = new BehaviorSubject<number>(0);
 
 	constructor(private http: HttpClient) {
 	}
@@ -79,25 +81,36 @@ export class MovieService {
 
 		return movies$.pipe(
 			switchMap(movies => {
-				// remove movies from the list where the original release date is too far away in the past
-				// ex: released more than a year ago
-				movies = movies.filter(m => new Date(m.release_date) >= earliestReleaseDate);
+				// Filter movies with release dates older than one year
+				const filteredMovies = movies.filter(m => new Date(m.release_date) >= earliestReleaseDate);
 
-				if (!movies || movies.length === 0) {
+				if (!filteredMovies || filteredMovies.length === 0) {
 					return of([]);
 				}
 
-				// find first digital release dates for each movie
-				const observables$ = movies.map(movie =>
-					this.getReleaseDates(apiKey, movie.id).pipe(
-						map(response => {
-							movie.first_digital_release_date = this.findFirstReleaseDate(response, movie.release_date);
-							return movie;
-						})
-					)
-				);
+				let completed = 0;
+				const totalMovies = filteredMovies.length;
+				this.progress$.next(0); // Reset progress at the start
 
-				return forkJoin(observables$);
+				// Convert the array of movies into a stream
+				return from(filteredMovies).pipe(
+					// Process each movie, but only allow 10 requests to be active at a time.
+					mergeMap(movie =>
+						this.getReleaseDates(apiKey, movie.id).pipe(
+							map(response => {
+								movie.first_digital_release_date = this.findFirstReleaseDate(response, movie.release_date);
+								return movie;
+							}),
+							tap(() => {
+								completed++;
+								const progress = Math.round((completed / totalMovies) * 100);
+								this.progress$.next(progress); // Emit the new progress
+							})
+						), 10),
+					// Collect all the processed movies back into a single array
+					toArray(),
+					finalize(() => this.progress$.next(100))
+				);
 			})
 		);
 	}

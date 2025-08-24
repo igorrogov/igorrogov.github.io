@@ -10,6 +10,7 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatInputModule} from '@angular/material/input';
 import {Subscription} from 'rxjs';
 import {MatPaginator, MatPaginatorModule} from '@angular/material/paginator';
+import {MatProgressBar, MatProgressBarModule} from '@angular/material/progress-bar';
 
 @Component({
 	selector: 'movies',
@@ -34,7 +35,9 @@ import {MatPaginator, MatPaginatorModule} from '@angular/material/paginator';
 		MatIconModule,
 		MatPaginator,
 		MatPaginatorModule,
-		DatePipe
+		DatePipe,
+		MatProgressBar,
+		MatProgressBarModule
 	],
 	providers: [provideNativeDateAdapter()],
 	templateUrl: './movies.component.html',
@@ -68,6 +71,12 @@ export class MoviesComponent implements OnInit, AfterViewInit, OnDestroy  {
 
 	currentEndDate: Date = this.DEFAULT_END_DATE;
 
+	isLoading = false;
+
+	progress = 0;
+
+	private progressSub!: Subscription;
+
 	constructor(private movieService: MovieService) {
 		// show the last two weeks by default
 		this.DEFAULT_START_DATE.setDate(this.DEFAULT_END_DATE.getDate() - 14);
@@ -81,6 +90,11 @@ export class MoviesComponent implements OnInit, AfterViewInit, OnDestroy  {
 	}
 
 	ngOnInit(): void {
+		// Subscribe to progress updates
+		this.progressSub = this.movieService.progress$.subscribe(p => {
+			this.progress = p;
+		});
+
 		const loadedKey = localStorage.getItem('apiKey');
 		if (loadedKey) {
 			this.apiKey = loadedKey;
@@ -97,6 +111,9 @@ export class MoviesComponent implements OnInit, AfterViewInit, OnDestroy  {
 		if (this.rangeSubscription) {
 			this.rangeSubscription.unsubscribe();
 		}
+		if (this.progressSub) {
+			this.progressSub.unsubscribe();
+		}
 	}
 
 	saveApiKey() {
@@ -105,10 +122,12 @@ export class MoviesComponent implements OnInit, AfterViewInit, OnDestroy  {
 	}
 
 	reloadMovies() {
+		this.isLoading = true;
 		this.movieService.discoverMovies(this.apiKey, this.currentStartDate, this.currentEndDate).subscribe(movies => {
 			// sort by release date (newest to oldest)
 			movies.sort((a, b) => b.first_digital_release_date.getTime() - a.first_digital_release_date.getTime());
 			this.dataSource.data = movies;
+			this.isLoading = false;
 		});
 	}
 

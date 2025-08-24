@@ -29,6 +29,11 @@
 	}
 </mat-form-field>
 
+<div *ngIf="isLoading" class="progress-container">
+	<p>Loading... {{ progress }}%</p>
+	<mat-progress-bar mode="determinate" [value]="progress"></mat-progress-bar>
+</div>
+
 <div class="mat-elevation-z8 table-container">
 	<table mat-table [dataSource]="dataSource" class="mat-table">
 
