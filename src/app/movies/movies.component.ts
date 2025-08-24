@@ -58,8 +58,6 @@ export class MoviesComponent implements OnInit, AfterViewInit, OnDestroy  {
 		end: new FormControl<Date | null>(new Date()),
 	});
 
-	private readonly rangeSubscription: Subscription | undefined;
-
 	displayedColumns: string[] = ['poster', 'description'];
 
 	dataSource = new MatTableDataSource<Movie>();
@@ -80,13 +78,7 @@ export class MoviesComponent implements OnInit, AfterViewInit, OnDestroy  {
 	constructor(private movieService: MovieService) {
 		// show the last two weeks by default
 		this.DEFAULT_START_DATE.setDate(this.DEFAULT_END_DATE.getDate() - 14);
-
-		this.range.setValue({ start: new Date(), end: new Date() });
-		this.rangeSubscription = this.range.valueChanges.subscribe(dateRange => {
-			this.currentStartDate = dateRange.start ?? this.DEFAULT_START_DATE;
-			this.currentEndDate = dateRange.end ?? this.DEFAULT_END_DATE;
-			this.reloadMovies();
-		});
+		this.range.setValue({ start: this.DEFAULT_START_DATE, end: new Date() });
 	}
 
 	ngOnInit(): void {
@@ -108,9 +100,6 @@ export class MoviesComponent implements OnInit, AfterViewInit, OnDestroy  {
 	}
 
 	ngOnDestroy(): void {
-		if (this.rangeSubscription) {
-			this.rangeSubscription.unsubscribe();
-		}
 		if (this.progressSub) {
 			this.progressSub.unsubscribe();
 		}
@@ -119,6 +108,15 @@ export class MoviesComponent implements OnInit, AfterViewInit, OnDestroy  {
 	saveApiKey() {
 		localStorage.setItem('apiKey', this.apiKey);
 		this.reloadMovies();
+	}
+
+	public onRangeSelected() {
+		const { start, end } = this.range.value;
+		if (start && end) {
+			this.currentStartDate = start;
+			this.currentEndDate = end;
+			this.reloadMovies();
+		}
 	}
 
 	reloadMovies() {

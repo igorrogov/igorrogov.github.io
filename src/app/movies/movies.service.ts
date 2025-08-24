@@ -26,6 +26,9 @@ export class MovieService {
 	}
 
 	discoverMovies(apiKey: string, start: Date, end: Date): Observable<Movie[]> {
+		// Reset progress at the start
+		this.progress$.next(0);
+
 		let originalMovies$ = this.discoverMoviesForPage(apiKey, start, end, 1).pipe(
 			switchMap(firstResponse => {
 				const firstPage = firstResponse.results;
@@ -90,7 +93,6 @@ export class MovieService {
 
 				let completed = 0;
 				const totalMovies = filteredMovies.length;
-				this.progress$.next(0); // Reset progress at the start
 
 				// Convert the array of movies into a stream
 				return from(filteredMovies).pipe(
