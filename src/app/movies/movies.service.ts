@@ -25,11 +25,11 @@ export class MovieService {
 		return this.http.get<GenreListResponse>(`${this.baseUrl}/genre/movie/list`, { headers });
 	}
 
-	discoverMovies(apiKey: string, start: Date, end: Date): Observable<Movie[]> {
+	discoverMovies(apiKey: string, start: Date, end: Date, excludedGenres: number[]): Observable<Movie[]> {
 		// Reset progress at the start
 		this.progress$.next(0);
 
-		let originalMovies$ = this.discoverMoviesForPage(apiKey, start, end, 1).pipe(
+		let originalMovies$ = this.discoverMoviesForPage(apiKey, start, end, 1, excludedGenres).pipe(
 			switchMap(firstResponse => {
 				const firstPage = firstResponse.results;
 				if (firstResponse.total_pages <= 1) {
@@ -39,7 +39,7 @@ export class MovieService {
 				// more than one page
 				const remainingRequests$: Observable<DiscoverMoviesResponse>[] = [];
 				for (let page = 2; page <= firstResponse.total_pages; page++) {
-					remainingRequests$.push(this.discoverMoviesForPage(apiKey, start, end, page));
+					remainingRequests$.push(this.discoverMoviesForPage(apiKey, start, end, page, excludedGenres));
 				}
 
 				return forkJoin(remainingRequests$).pipe(
@@ -55,7 +55,7 @@ export class MovieService {
 		return this.loadReleaseDates(apiKey, start, originalMovies$);
 	}
 
-	discoverMoviesForPage(apiKey: string, start: Date, end: Date, page: number) {
+	discoverMoviesForPage(apiKey: string, start: Date, end: Date, page: number, excludedGenres: number[]) {
 		const headers = new HttpHeaders({
 			Authorization: `Bearer ${apiKey}`
 		});
@@ -66,15 +66,20 @@ export class MovieService {
 		// 99 - documentary
 		// 16 - animation
 
-		const params = new HttpParams()
+		let params = new HttpParams()
 			.set('release_date.gte', formattedStart as string)
 			.set('release_date.lte', formattedEnd as string)
 			.set('sort_by', 'primary_release_date.desc')
 			.set('vote_count.gte', 50)
 			.set('with_release_type', '4|5')
 			.set('with_original_language', 'en')
-			.set('without_genres', "99,16")
+			// .set('without_genres', "99,16")
 			.set('page', page)
+
+		if (excludedGenres && excludedGenres.length > 0) {
+			params = params.set('without_genres', excludedGenres.join(','));
+		}
+
 		return this.http.get<DiscoverMoviesResponse>(`${this.baseUrl}/discover/movie`, { headers, params });
 	}
 

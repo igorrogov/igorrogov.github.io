@@ -5,12 +5,13 @@ import {Movie, MovieService} from './movies.service';
 import {DatePipe, NgIf} from '@angular/common';
 import {MatError, MatFormField, MatFormFieldModule, MatLabel} from '@angular/material/form-field';
 import {MatDatepickerModule, MatDatepickerToggle, MatDateRangeInput, MatDateRangePicker} from '@angular/material/datepicker';
-import {provideNativeDateAdapter} from '@angular/material/core';
+import {MatOption, provideNativeDateAdapter} from '@angular/material/core';
 import {MatIconModule} from '@angular/material/icon';
 import {MatInputModule} from '@angular/material/input';
 import {Subscription} from 'rxjs';
 import {MatPaginator, MatPaginatorModule, PageEvent} from '@angular/material/paginator';
 import {MatProgressBar, MatProgressBarModule} from '@angular/material/progress-bar';
+import {MatSelect} from '@angular/material/select';
 
 @Component({
 	selector: 'movies',
@@ -37,7 +38,9 @@ import {MatProgressBar, MatProgressBarModule} from '@angular/material/progress-b
 		MatPaginatorModule,
 		DatePipe,
 		MatProgressBar,
-		MatProgressBarModule
+		MatProgressBarModule,
+		MatSelect,
+		MatOption
 	],
 	providers: [provideNativeDateAdapter()],
 	templateUrl: './movies.component.html',
@@ -50,6 +53,11 @@ export class MoviesComponent implements OnInit, AfterViewInit, OnDestroy  {
 	readonly DEFAULT_END_DATE = new Date();
 
 	readonly genreMap = new Map<number, string>();
+	genreList: { id: number, name: string }[] = [];
+
+	// 99 - documentary
+	// 16 - animation
+	excludedGenres: number[] = [ 99, 16 ];
 
 	apiKey: string = '';
 
@@ -119,9 +127,13 @@ export class MoviesComponent implements OnInit, AfterViewInit, OnDestroy  {
 		}
 	}
 
+	public onFilterChanged() {
+		this.reloadMovies();
+	}
+
 	reloadMovies() {
 		this.isLoading = true;
-		this.movieService.discoverMovies(this.apiKey, this.currentStartDate, this.currentEndDate).subscribe(movies => {
+		this.movieService.discoverMovies(this.apiKey, this.currentStartDate, this.currentEndDate, this.excludedGenres).subscribe(movies => {
 			// sort by release date (newest to oldest)
 			movies.sort((a, b) => b.first_digital_release_date.getTime() - a.first_digital_release_date.getTime());
 			this.dataSource.data = movies;
@@ -131,6 +143,7 @@ export class MoviesComponent implements OnInit, AfterViewInit, OnDestroy  {
 
 	loadGenres(apiKey: string) {
 		this.movieService.getAllGenres(apiKey).subscribe(response => {
+			this.genreList = response.genres;
 			response.genres.forEach(genre => {
 				this.genreMap.set(genre.id, genre.name);
 			});

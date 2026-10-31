@@ -29,6 +29,15 @@
 	}
 </mat-form-field>
 
+<mat-form-field class="exclude-filter">
+	<mat-label>Exclude</mat-label>
+	<mat-select multiple [(ngModel)]="excludedGenres" (selectionChange)="onFilterChanged()">
+		@for (genre of genreList; track genre.id) {
+			<mat-option [value]="genre.id">{{ genre.name }}</mat-option>
+		}
+	</mat-select>
+</mat-form-field>
+
 <div *ngIf="isLoading" class="progress-container">
 	<p>Loading... {{ progress }}%</p>
 	<mat-progress-bar mode="determinate" [value]="progress"></mat-progress-bar>
