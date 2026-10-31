@@ -9,7 +9,7 @@ import {provideNativeDateAdapter} from '@angular/material/core';
 import {MatIconModule} from '@angular/material/icon';
 import {MatInputModule} from '@angular/material/input';
 import {Subscription} from 'rxjs';
-import {MatPaginator, MatPaginatorModule} from '@angular/material/paginator';
+import {MatPaginator, MatPaginatorModule, PageEvent} from '@angular/material/paginator';
 import {MatProgressBar, MatProgressBarModule} from '@angular/material/progress-bar';
 
 @Component({
@@ -145,6 +145,9 @@ export class MoviesComponent implements OnInit, AfterViewInit, OnDestroy  {
 		return text.length > length ? text.slice(0, length) + "..." : text;
 	}
 
+	onPageChange($event: PageEvent) {
+		window.scrollTo({ top: 0, behavior: 'smooth' });
+	}
 }
 
 
