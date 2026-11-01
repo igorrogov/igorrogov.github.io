@@ -58,6 +58,7 @@ export class MoviesComponent implements OnInit, AfterViewInit, OnDestroy  {
 	// 99 - documentary
 	// 16 - animation
 	excludedGenres: number[] = [ 99, 16 ];
+	includedGenres: number[] = [];
 
 	apiKey: string = '';
 
@@ -133,7 +134,9 @@ export class MoviesComponent implements OnInit, AfterViewInit, OnDestroy  {
 
 	reloadMovies() {
 		this.isLoading = true;
-		this.movieService.discoverMovies(this.apiKey, this.currentStartDate, this.currentEndDate, this.excludedGenres).subscribe(movies => {
+		this.movieService.discoverMovies(this.apiKey, this.currentStartDate, this.currentEndDate, this.excludedGenres,
+			this.includedGenres).subscribe(movies =>
+		{
 			// sort by release date (newest to oldest)
 			movies.sort((a, b) => b.first_digital_release_date.getTime() - a.first_digital_release_date.getTime());
 			this.dataSource.data = movies;

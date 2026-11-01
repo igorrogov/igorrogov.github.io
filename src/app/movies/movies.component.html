@@ -29,9 +29,18 @@
 	}
 </mat-form-field>
 
-<mat-form-field class="exclude-filter">
+<mat-form-field class="filter-panel">
 	<mat-label>Exclude</mat-label>
 	<mat-select multiple [(ngModel)]="excludedGenres" (selectionChange)="onFilterChanged()">
+		@for (genre of genreList; track genre.id) {
+			<mat-option [value]="genre.id">{{ genre.name }}</mat-option>
+		}
+	</mat-select>
+</mat-form-field>
+
+<mat-form-field class="filter-panel">
+	<mat-label>Include</mat-label>
+	<mat-select multiple [(ngModel)]="includedGenres" (selectionChange)="onFilterChanged()">
 		@for (genre of genreList; track genre.id) {
 			<mat-option [value]="genre.id">{{ genre.name }}</mat-option>
 		}

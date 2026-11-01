@@ -25,11 +25,11 @@ export class MovieService {
 		return this.http.get<GenreListResponse>(`${this.baseUrl}/genre/movie/list`, { headers });
 	}
 
-	discoverMovies(apiKey: string, start: Date, end: Date, excludedGenres: number[]): Observable<Movie[]> {
+	discoverMovies(apiKey: string, start: Date, end: Date, excludedGenres: number[], includedGenres: number[]): Observable<Movie[]> {
 		// Reset progress at the start
 		this.progress$.next(0);
 
-		let originalMovies$ = this.discoverMoviesForPage(apiKey, start, end, 1, excludedGenres).pipe(
+		let originalMovies$ = this.discoverMoviesForPage(apiKey, start, end, 1, excludedGenres, includedGenres).pipe(
 			switchMap(firstResponse => {
 				const firstPage = firstResponse.results;
 				if (firstResponse.total_pages <= 1) {
@@ -39,7 +39,7 @@ export class MovieService {
 				// more than one page
 				const remainingRequests$: Observable<DiscoverMoviesResponse>[] = [];
 				for (let page = 2; page <= firstResponse.total_pages; page++) {
-					remainingRequests$.push(this.discoverMoviesForPage(apiKey, start, end, page, excludedGenres));
+					remainingRequests$.push(this.discoverMoviesForPage(apiKey, start, end, page, excludedGenres, includedGenres));
 				}
 
 				return forkJoin(remainingRequests$).pipe(
@@ -55,7 +55,7 @@ export class MovieService {
 		return this.loadReleaseDates(apiKey, start, originalMovies$);
 	}
 
-	discoverMoviesForPage(apiKey: string, start: Date, end: Date, page: number, excludedGenres: number[]) {
+	discoverMoviesForPage(apiKey: string, start: Date, end: Date, page: number, excludedGenres: number[], includedGenres: number[]) {
 		const headers = new HttpHeaders({
 			Authorization: `Bearer ${apiKey}`
 		});
@@ -78,6 +78,9 @@ export class MovieService {
 
 		if (excludedGenres && excludedGenres.length > 0) {
 			params = params.set('without_genres', excludedGenres.join(','));
+		}
+		if (includedGenres && includedGenres.length > 0) {
+			params = params.set('with_genres', includedGenres.join('|'));
 		}
 
 		return this.http.get<DiscoverMoviesResponse>(`${this.baseUrl}/discover/movie`, { headers, params });
