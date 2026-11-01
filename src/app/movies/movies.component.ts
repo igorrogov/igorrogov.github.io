@@ -12,6 +12,7 @@ import {Subscription} from 'rxjs';
 import {MatPaginator, MatPaginatorModule, PageEvent} from '@angular/material/paginator';
 import {MatProgressBar, MatProgressBarModule} from '@angular/material/progress-bar';
 import {MatSelect} from '@angular/material/select';
+import {MatIconButton} from '@angular/material/button';
 
 @Component({
 	selector: 'movies',
@@ -40,7 +41,8 @@ import {MatSelect} from '@angular/material/select';
 		MatProgressBar,
 		MatProgressBarModule,
 		MatSelect,
-		MatOption
+		MatOption,
+		MatIconButton
 	],
 	providers: [provideNativeDateAdapter()],
 	templateUrl: './movies.component.html',
@@ -61,6 +63,8 @@ export class MoviesComponent implements OnInit, AfterViewInit, OnDestroy  {
 	includedGenres: number[] = [];
 
 	apiKey: string = '';
+
+	showApiKeyField: boolean = false;
 
 	readonly range = new FormGroup({
 		start: new FormControl<Date | null>(new Date()),
@@ -116,6 +120,7 @@ export class MoviesComponent implements OnInit, AfterViewInit, OnDestroy  {
 
 	saveApiKey() {
 		localStorage.setItem('apiKey', this.apiKey);
+		this.showApiKeyField = false;
 		this.reloadMovies();
 	}
 

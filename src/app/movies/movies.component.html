@@ -7,9 +7,17 @@
 </head>
 <body>
 
-<div class="header">
-	<input type="password" [(ngModel)]="apiKey" placeholder="Enter API Key"/>
-	<button (click)="saveApiKey()">Save API Key</button>
+<div class="settings-container">
+	<!-- Gear Icon Button -->
+	<button mat-icon-button (click)="showApiKeyField = !showApiKeyField" aria-label="Settings">
+		<mat-icon>settings</mat-icon>
+	</button>
+
+	<!-- Hidden panel that shows when gear is clicked -->
+	<div class="api-key-panel" *ngIf="showApiKeyField">
+		<input type="password" [(ngModel)]="apiKey" placeholder="Enter API Key"/>
+		<button (click)="saveApiKey()">Save</button>
+	</div>
 </div>
 
 <mat-form-field>
